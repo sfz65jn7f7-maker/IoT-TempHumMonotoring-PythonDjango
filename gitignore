@@ -1,0 +1,53 @@
+# ---------- PyCharm / JetBrains ----------
+.idea/
+*.iml
+*.iws
+out/
+
+# ---------- Environnements virtuels ----------
+venv/
+.venv/
+env/
+ENV/
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ---------- Build / packaging ----------
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# ---------- Tests / couverture ----------
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+
+# ---------- Jupyter ----------
+.ipynb_checkpoints/
+
+# ---------- Django ----------
+db.sqlite3
+db.sqlite3-journal
+*.log
+media/
+staticfiles/
+
+# ---------- Secrets / configuration ----------
+.env
+.env.*
+*.pem
+secrets.py
+local_settings.py
+
+# ---------- Système ----------
+.DS_Store
+Thumbs.db
+desktop.ini
