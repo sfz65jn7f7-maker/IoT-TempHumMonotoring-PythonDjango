@@ -1,0 +1,72 @@
+{% extends 'DHT/base.html' %}
+{% block title %}Tableau de suivi des incidents{% endblock %}
+{% block head %}
+<style>
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; text-align: center; }
+  th, td { border: 1px solid #ccd; padding: 6px 10px; }
+  th { background: #e8ecf3; }
+  tr.alerte td { background: #fdeaea; }
+  .resume { text-align: center; font-size: 20px; margin-bottom: 12px; }
+  .resume b { color: #8e24aa; font-size: 28px; }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="topbar">
+    <a class="btn secondary" href="{% url 'dashboard' %}">← Retour</a>
+    <button class="btn" id="csv">Télécharger en CSV</button>
+  </div>
+  <h1>Tableau de suivi des incidents</h1>
+  <div class="box">
+    <div class="resume">Incidents détectés : <b id="nbInc">0</b></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Temps</th><th>Température (°C)</th><th>Incident</th><th>Compteur</th><th>Op1</th><th>Op2</th><th>Op3</th></tr>
+        </thead>
+        <tbody id="corps"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="status">En attente des données...</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let lignes = [];
+
+  async function refresh() {
+    try {
+      const rows = await chargerMesures();
+      if (rows.length === 0) {
+        document.getElementById('status').textContent = 'Aucune mesure reçue pour le moment';
+        return;
+      }
+      lignes = analyser(rows);
+      document.getElementById('nbInc').textContent = lignes.filter(l => l.compteur === 1).length;
+      document.getElementById('corps').innerHTML = lignes.map(l =>
+        '<tr class="' + (l.incident ? 'alerte' : '') + '">' +
+        '<td>' + new Date(l.date).toLocaleTimeString() + '</td>' +
+        '<td>' + l.temp.toFixed(1) + '</td>' +
+        '<td>' + l.incident + '</td><td>' + l.compteur + '</td>' +
+        '<td>' + l.op1 + '</td><td>' + l.op2 + '</td><td>' + l.op3 + '</td></tr>'
+      ).join('');
+      document.getElementById('status').textContent =
+        'Dernière mesure : ' + new Date(rows[rows.length - 1].date).toLocaleString();
+    } catch (e) {
+      document.getElementById('status').textContent = 'Erreur de connexion au serveur';
+    }
+  }
+
+  document.getElementById('csv').addEventListener('click', () => {
+    if (lignes.length === 0) { alert('Aucune mesure à télécharger.'); return; }
+    telechargerCSV('suivi_incidents.csv',
+      ['Temps', 'Température (°C)', 'Incident', 'Compteur', 'Op1', 'Op2', 'Op3'],
+      lignes.map(l => [formatDate(l.date), l.temp, l.incident, l.compteur, l.op1, l.op2, l.op3]));
+  });
+
+  refresh();
+  setInterval(refresh, 5000);
+</script>
+{% endblock %}

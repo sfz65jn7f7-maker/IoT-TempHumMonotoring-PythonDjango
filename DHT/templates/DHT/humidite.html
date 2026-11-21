@@ -1,0 +1,62 @@
+{% extends 'DHT/base.html' %}
+{% load static %}
+{% block title %}Graphique de l'humidité{% endblock %}
+
+{% block content %}
+  <div class="topbar">
+    <a class="btn secondary" href="{% url 'dashboard' %}">← Retour</a>
+    <button class="btn" id="csv">Télécharger en CSV</button>
+  </div>
+  <h1>Graphique de l'humidité</h1>
+  <div class="box"><canvas id="chart"></canvas></div>
+  <div id="status">En attente des données...</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'DHT/chart.umd.js' %}"></script>
+<script>
+  let rows = [];
+  const chart = new Chart(document.getElementById('chart'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        { label: 'Humidité (%)', data: [], borderColor: '#1b7fd0', backgroundColor: '#1b7fd022', fill: true, tension: 0.3 }
+      ]
+    },
+    options: {
+      animation: false,
+      scales: {
+        y: { min: 20, max: 90, title: { display: true, text: '%' } },
+        x: { title: { display: true, text: 'Heure' } }
+      }
+    }
+  });
+
+  async function refresh() {
+    try {
+      rows = await chargerMesures();
+      if (rows.length === 0) {
+        document.getElementById('status').textContent = 'Aucune mesure reçue pour le moment';
+        return;
+      }
+      chart.data.labels = rows.map(r => new Date(r.date).toLocaleTimeString());
+      chart.data.datasets[0].data = rows.map(r => r.hum);
+      chart.update();
+      document.getElementById('status').textContent =
+        'Dernière mesure : ' + new Date(rows[rows.length - 1].date).toLocaleString();
+    } catch (e) {
+      document.getElementById('status').textContent = 'Erreur de connexion au serveur';
+    }
+  }
+
+  document.getElementById('csv').addEventListener('click', () => {
+    if (rows.length === 0) { alert('Aucune mesure à télécharger.'); return; }
+    telechargerCSV('humidite.csv', ['Date et heure', 'Humidité (%)'],
+                   rows.map(r => [formatDate(r.date), r.hum]));
+  });
+
+  refresh();
+  setInterval(refresh, 5000);
+</script>
+{% endblock %}

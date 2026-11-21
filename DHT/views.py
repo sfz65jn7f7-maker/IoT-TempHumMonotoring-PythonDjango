@@ -18,6 +18,17 @@ def test(request):
 def dashboard(request):
     return render(request, 'DHT/dashboard.html')
 
+def temperature_page(request):
+    return render(request, 'DHT/temperature.html')
+
+
+def humidite_page(request):
+    return render(request, 'DHT/humidite.html')
+
+
+def incidents_page(request):
+    return render(request, 'DHT/incidents.html')
+
 
 @api_view(['GET'])
 def Dlist(request):
